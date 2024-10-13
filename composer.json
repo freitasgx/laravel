@@ -1,0 +1,17 @@
+{
+    "name": "alison/laravel",
+    "autoload": {
+        "psr-4": {
+            "Alison\\Laravel\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Alison de Freitas",
+            "email": "freitas.gx@outlook.com"
+        }
+    ],
+    "require": {
+        "laravel/framework": "^11.27"
+    }
+}

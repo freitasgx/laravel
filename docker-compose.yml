@@ -1,40 +1,46 @@
-version: '3.8'  # Versão do Docker Compose
-
 services:
-  app:
-    container_name: app  # Nome do contêiner para o serviço de aplicação
+  # Serviço PHP
+  php:
     build:
-      context: .  # Diretório onde o Dockerfile está localizado
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-php
     volumes:
-      - .src/:/var/www/html  # Mapeia o diretório atual para o diretório de trabalho no contêiner
-    networks:
-      - net  # Rede à qual o contêiner será conectado
+      - ./src:/var/www
     depends_on:
-      - redis  # O serviço 'app' também depende do serviço 'redis' estar disponível
-    entrypoint: /usr/local/bin/init.sh  # Script de inicialização para configurar o ambiente
-
-  redis:
-    image: redis:latest  # Imagem do Redis a ser utilizada
-    container_name: fenix_redis  # Nome do contêiner para o serviço Redis
-    ports:
-      - "6380:6379"  # Mapeia a porta 6379 do contêiner para a porta 6380 do host
+      - db
     networks:
-      - net  # Rede à qual o contêiner será conectado
+      - laravel-network
 
+  # Serviço Nginx
   nginx:
-    image: nginx:latest  # Imagem do Nginx a ser utilizada
-    container_name: nginx  # Nome do contêiner para o serviço Nginx
-    volumes:
-      - ./src:/var/www/html  # Mapeia o diretório atual para o diretório de trabalho no contêiner
-      - ./nginx.conf:/etc/nginx/nginx.conf  # Configuração do Nginx
+    image: nginx:alpine
+    container_name: laravel-nginx
     ports:
-      - "9000:80"  # Mapeia a porta 80 do contêiner para a porta 9000 do host
+      - "8080:80"
+    volumes:
+      - ./src:/var/www
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - app  # O serviço 'nginx' depende do serviço 'app' estar disponível
+      - php
     networks:
-      - net  # Rede à qual o contêiner será conectado
+      - laravel-network
 
+  # Serviço MySQL
+  db:
+    image: mysql:8.0
+    container_name: laravel-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dbdata:/var/lib/mysql
+    networks:
+      - laravel-network
 networks:
-  net:
-    name: net  # Nome da rede compartilhada
-    driver: bridge  # Tipo de rede a ser utilizada
+  laravel-network:
+    driver: bridge
